@@ -2,6 +2,16 @@ import sys
 import argparse
 import os
 
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 def argParser(argv):
     """Add command line arguments and parse user inputs.
     Args:
@@ -18,7 +28,7 @@ def argParser(argv):
 
     parser.add_argument('--popplerpath', dest='popplerPath',
                         default=None,
-                        help='Path to Poppler "\bin\\pdftoppm.exe"')
+                        help='Path to Poppler pdftoppm.exe')
 
     parser.add_argument('--imagespath', dest='imagesPath',
                         default=os.path.join('..', 'images'),
@@ -29,7 +39,7 @@ def argParser(argv):
                         help='Performance profiles: 0: light, 1:medium, 2:high',
                         choices=[0, 1, 2])
 
-    parser.add_argument('--cleanup',
+    parser.add_argument('--cleanup', type=str2bool,
                         default=True,
                         help='Whether to clean up generated images after OCR',
                         choices=[True, False])
@@ -45,14 +55,14 @@ def argParser(argv):
 
     parser.add_argument('--tesseractpath', dest='tesseractPath',
                         default=None,
-                        help='Path to Tesseract executable"')
+                        help='Path to tesseract.exe"')
 
     args = parser.parse_args(argv[1:])
     argChecker(args)
     return args
 
 def argChecker(args):
-    """Processes arguments and performs validity checks
+    """Processes arguments and performs validity checks for poppler and tesseract directories
     Returns:
         Success Code
     """
@@ -63,16 +73,11 @@ def argChecker(args):
         print('\tOutput directory not found, creating...')
         os.mkdir(args.outputPath)
 
-    #os.environ['popplerPath'] = os.path.join('..', 'poppler-0.68.0_x86', 'poppler-0.68.0', 'bin', 'pdftoppm.exe')
-    os.environ['popplerPath'] = os.path.join('..', '..', '..', 'parallel ocr',
-        'IBOR-Contract-Analysis','poppler-0.68.0_x86', 'poppler-0.68.0', 'bin', 'pdftoppm.exe')
-    args.popplerPath = os.environ.get('popplerPath')
-
     if args.popplerPath is None:
-        args.popplerPath = os.environ.get('popplerPath')
+        args.popplerPath = os.path.join(os.environ.get('popplerPath'), 'pdftoppm.exe')
     assert os.path.exists(args.popplerPath), "Poppler extract not found at "+str(args.popplerPath)+", either provide a valid path on execution or add it to PATH"
     
-    os.environ['tesseractPath'] = 'C://Program Files//Tesseract-OCR//tesseract.exe'
-    args.tesseractPath = os.environ.get('tesseractPath')
+    args.tesseractPath = os.path.join(os.environ.get('tesseractPath'), 'tesseract.exe')
+    assert os.path.exists(args.tesseractPath), "tesseract.exe extract not found at "+str(args.tesseractPath)+", please add it to 'tesseractPath' environmental variable"
     return 0
 
