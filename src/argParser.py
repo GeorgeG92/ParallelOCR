@@ -74,10 +74,13 @@ def argChecker(args):
         os.mkdir(args.outputPath)
 
     if args.popplerPath is None:
-        args.popplerPath = os.path.join(os.environ.get('popplerPath'), 'pdftoppm.exe')
+        args.popplerPath = os.path.join(os.environ.get('poppler'), 'pdftoppm.exe')  # grab from env var
+    print(args.popplerPath)
     assert os.path.exists(args.popplerPath), "Poppler extract not found at "+str(args.popplerPath)+", either provide a valid path on execution or add it to PATH"
     
-    args.tesseractPath = os.path.join(os.environ.get('tesseractPath'), 'tesseract.exe')
+    if args.tesseractPath is None:
+        args.tesseractPath = os.path.join(os.environ.get('tesseract'), 'tesseract.exe')  # grab from env var
+    print(args.tesseractPath)
     assert os.path.exists(args.tesseractPath), "tesseract.exe extract not found at "+str(args.tesseractPath)+", please add it to 'tesseractPath' environmental variable"
     return 0
 
