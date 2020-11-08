@@ -9,6 +9,7 @@ try:
 	from PIL import Image
 except ImportError:
 	import Image
+import PyPDF2
 
 class OCR():
 	def __init__(self, args):
@@ -43,35 +44,47 @@ class OCR():
 		#text = text.translate(str.maketrans('', '', string.punctuation)).lower().rstrip()    
 		return text
 
+	def testPDFReadable(self, docPath):
+		"""
+		Tests whether a pdf is readable using the pypdf library
+		Returns a boolean value
+		"""
+		reader = PyPDF2.PdfFileReader(docPath)
+		pdftext = ''
+		for page in range(reader.getNumPages()):
+		    pagetext = reader.getPage(page).extractText()
+		    pdftext += pagetext
+		return len(pdftext)>0, pdftext
 
 	def ocrPipeline(self, docPath):
 		"""
-		OCR Pipeline that transforms a document to one images/page and then extracts the text from it
+		OCR Pipeline that transforms a document to one image/page and then extracts the text from it
 			Runs in multiprocessing
 		Args:
 			docPath: the path to the input document
 		"""
 		# pdf to Images
 		print("\tProcessing document: "+str(docPath))
-		head, tail = os.path.split(docPath)             # head='./../../', tail='bla.ext'
-		fileName, ext = os.path.splitext(tail)
-		imagePath = os.path.join(self.imagesPath, fileName)
-		if not os.path.exists(imagePath):
-			os.mkdir(imagePath)
-		if docPath.lower().endswith(".pdf"):
-			outputfile = os.path.join(imagePath, fileName)
-			process = subprocess.Popen('"%s" -jpeg -r %s "%s" "%s"' % (self.popplerPath, self.dpi, docPath, outputfile))
-			out, err = process.communicate()
-		else:
-			copyfile(docPath, os.path.join(imagePath, tail))
-		# Images to Text
-		imagesList =  generateList(imagePath, file_extensions=('.jpg', '.tiff'))
-		finalText = ' '.join([self.ocr(imagePath) for imagePath in imagesList])
+		head, tail = os.path.split(docPath)                   # head='./../../', tail='bla.ext'
+		readable, finalText = self.testPDFReadable(docPath)
+		if not readable:                                      # OCR
+			fileName, ext = os.path.splitext(tail)
+			imagePath = os.path.join(self.imagesPath, fileName)
+			if not os.path.exists(imagePath):
+				os.mkdir(imagePath)
+			if docPath.lower().endswith(".pdf"):
+				outputfile = os.path.join(imagePath, fileName)
+				process = subprocess.Popen('"%s" -jpeg -r %s "%s" "%s"' % (self.popplerPath, self.dpi, docPath, outputfile))
+				out, err = process.communicate()
+			else:
+				copyfile(docPath, os.path.join(imagePath, tail))
+			# Images to Text
+			imagesList =  generateList(imagePath, file_extensions=('.jpg', '.tiff'))
+			finalText = ' '.join([self.ocr(imagePath) for imagePath in imagesList])
+			if self.cleanup:
+				rmtree(imagePath)
 		finalText = cleanText(finalText)
 		returnTuple = (tail, docPath, finalText)
-
-		if self.cleanup:
-			rmtree(imagePath)
 		return returnTuple
 
 
@@ -90,7 +103,7 @@ class OCR():
 		"""
 		Function that sets the OCR pipeline in motion
 		"""
-		print("Running OCR on "+str(len(self.docList))+" documents using "+str(self.concurrent)+" processes")
+		print("Extracting text from "+str(len(self.docList))+" documents using "+str(self.concurrent)+" processes")
 		p=mp.Pool(processes = self.concurrent)  
 		textList = p.starmap(self.ocrPipeline, zip(self.docList))
 		p.close()
