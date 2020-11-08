@@ -27,7 +27,7 @@ def generateList(directory, file_extensions=('.pdf', '.tiff')):
 		documentsList.append(fname)
 	return documentsList
 
-def cleanText(text):
+def cleanText(text, exportType):
 	"""
 	Basic string cleaning function, removes non printable charactes as well as tabs and newlines
 	Args:
@@ -35,6 +35,9 @@ def cleanText(text):
 	Returns:
 		The cleaned text
 	"""
-	text = re.sub('[^Α-Ωa-zΈΌΊΏΉΎα-ω0-9A-Zάέόίώήύϊϋ\ \.,`#%&@:$·\-\*^/;()!\'/\"]', "", text)
+	if exportType=='csv':
+		text = re.sub('[^Α-Ωa-zΈΌΊΏΉΎα-ω0-9A-Zάέόίώήύϊϋ\ \.,`#%&@:$·\-\*^/;()!\'/\"]', "", text)
+	else:
+		text = re.sub('[^Α-Ωa-zΈΌΊΏΉΎα-ω0-9A-Zάέόίώήύϊϋ\ \.\n,`#%&@:$·\-\*^/;()!\'/\"]', "", text)
 	text = re.sub("(\ {2,})", " ", text)
 	return text

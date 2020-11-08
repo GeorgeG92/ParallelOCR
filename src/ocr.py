@@ -10,6 +10,7 @@ try:
 except ImportError:
 	import Image
 import PyPDF2
+import docx
 
 class OCR():
 	def __init__(self, args):
@@ -20,6 +21,7 @@ class OCR():
 		self.cleanup = args.cleanup
 		self.outputPath = args.outputPath
 		self.tesseractPath = args.tesseractPath
+		self.expType = args.expType
 		self.dpi = args.dpi
 
 		self.docList = generateList(self.docsPath)
@@ -83,21 +85,30 @@ class OCR():
 			finalText = ' '.join([self.ocr(imagePath) for imagePath in imagesList])
 			if self.cleanup:
 				rmtree(imagePath)
-		finalText = cleanText(finalText)
+		finalText = cleanText(finalText, self.expType)
 		returnTuple = (tail, docPath, finalText)
 		return returnTuple
 
 
 	def exportResults(self, textList):
 		"""
-		Persists the extracted text to disk in .csv format
+		Persists the extracted text to disk in .docx or .csv format
 		Args:
 			textList: A list of tuples containing document content and metadata
 		"""
-		print("Exporting results in "+str(self.outputPath))
-		df = pd.DataFrame(textList, columns=['document', 'path', 'text'])
-		df.to_csv(os.path.join(self.outputPath, 'results.csv'), index=False)
-
+		if self.expType=='docx':
+			print("Exporting documents in .docx format "+str(self.outputPath))
+			for docList in textList:
+				docPath = os.path.join(self.outputPath, ''.join(docList[0].split('.')[:-1])+'.docx')
+				docxDoc = docx.Document()
+				for paragraph in docList[2].split('\n'):
+					docxDoc.add_paragraph(paragraph)
+				docxDoc.save(docPath)
+		else:
+			print("Exporting documents in .docx format in "+str(self.outputPath))
+			df = pd.DataFrame(textList, columns=['document', 'path', 'text'])
+			df.to_csv(os.path.join(self.outputPath, 'results.csv'), index=False)
+		print("Done!")
 
 	def runOCR(self):
 		"""
