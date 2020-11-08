@@ -5,7 +5,7 @@ Features:
 - Supports both text-readable and non text-readable (scanned) documents
 - Multiprocessing implemented with three different performance profiles to optimize execution speeds
 - Basic text cleaning
-- Export data in csv format
+- Export data in .docx or .csv format
 
 Requirements:
 1) Download Poppler from http://blog.alivate.com.au/poppler-windows/ and add the /bin folder to env variable "popplerPath"
