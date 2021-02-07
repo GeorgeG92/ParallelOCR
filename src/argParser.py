@@ -26,10 +26,6 @@ def argParser(argv):
 					default=os.path.join('..', 'documents'),
 					help='Path to input documents')
 
-	parser.add_argument('--popplerpath', dest='popplerPath',
-						default=None,
-						help='Path to Poppler pdftoppm.exe')
-
 	parser.add_argument('--imagespath', dest='imagesPath',
 						default=os.path.join('..', 'images'),
 						help='Path to image directory to be used for the pipelines')
@@ -56,10 +52,6 @@ def argParser(argv):
 						default=os.path.join('..', 'output'),
 						help='Path to generated csv with extracted text files')
 
-	parser.add_argument('--tesseractpath', dest='tesseractPath',
-						default=None,
-						help='Path to tesseract.exe"')
-
 	args = parser.parse_args(argv[1:])
 	argChecker(args)
 	return args
@@ -75,13 +67,5 @@ def argChecker(args):
 	if not os.path.exists(args.outputPath):
 		print('\tOutput directory not found, creating...')
 		os.mkdir(args.outputPath)
-
-	if args.popplerPath is None:
-		args.popplerPath = os.path.join(os.environ.get('poppler'), 'pdftoppm.exe')  # grab from env var
-	assert os.path.exists(args.popplerPath), "Poppler extract not found at "+str(args.popplerPath)+", either provide a valid path on execution or add it to PATH"
-	
-	if args.tesseractPath is None:
-		args.tesseractPath = os.path.join(os.environ.get('tesseract'), 'tesseract.exe')  # grab from env var
-	assert os.path.exists(args.tesseractPath), "tesseract.exe extract not found at "+str(args.tesseractPath)+", please add it to 'tesseractPath' environmental variable"
 	return 0
 

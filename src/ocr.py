@@ -15,12 +15,10 @@ import docx
 class OCR():
 	def __init__(self, args):
 		self.docsPath = args.docsPath
-		self.popplerPath = args.popplerPath
 		self.imagesPath = args.imagesPath
 		self.performance = args.performance
 		self.cleanup = args.cleanup
 		self.outputPath = args.outputPath
-		self.tesseractPath = args.tesseractPath
 		self.expType = args.expType
 		self.dpi = args.dpi
 
@@ -41,7 +39,7 @@ class OCR():
 			imagePath: the path to the image to perform OCR on
 		"""
 		image = Image.open(imagePath)
-		ps.pytesseract.tesseract_cmd = self.tesseractPath
+		#ps.pytesseract.tesseract_cmd = self.tesseractPath
 		text = ps.image_to_string(image)
 		#text = text.translate(str.maketrans('', '', string.punctuation)).lower().rstrip()    
 		return text
@@ -76,8 +74,7 @@ class OCR():
 				os.mkdir(imagePath)
 			if docPath.lower().endswith(".pdf"):
 				outputfile = os.path.join(imagePath, fileName)
-				process = subprocess.Popen('"%s" -jpeg -r %s "%s" "%s"' % (self.popplerPath, self.dpi, docPath, outputfile))
-				out, err = process.communicate()
+				cp = subprocess.run('pdftoppm -jpeg -r {dpi} {path} {out}'.format(dpi=self.dpi, path=docPath, out=outputfile).split())
 			else:
 				copyfile(docPath, os.path.join(imagePath, tail))
 			# Images to Text

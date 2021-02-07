@@ -1,0 +1,14 @@
+version: '2.2'
+services:
+ ocrapp:
+  image: ocrimage                          
+  build:  .                                       
+  command: python src/run.py
+  container_name: ocrcontainer             
+  volumes:
+   - type: bind                                     # bind mount: docs & output
+     source: ./documents
+     target: /documents
+   - type: bind
+     source: ./output
+     target: /output
