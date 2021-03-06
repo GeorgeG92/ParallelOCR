@@ -1,7 +1,7 @@
 import os
 import re
 
-def walkThroughFiles(path, file_extensions):   
+def walk_through_files(path, file_extensions):   
 	"""
 	Generator function: searches the directory recursively to obtain all files that match the file_extensions
 	Args:
@@ -13,7 +13,7 @@ def walkThroughFiles(path, file_extensions):
 			if filename.endswith(file_extensions): 
 				yield os.path.join(dirpath, filename).replace("\\","/")        # ensure right backslashes (Windows)!
 				
-def generateList(directory, file_extensions=('.pdf', '.tiff')):
+def generate_list(directory, file_extensions=('.pdf', '.tiff')):
 	"""
 	Populates a list of compatible files and returns it
 	Args:
@@ -23,11 +23,11 @@ def generateList(directory, file_extensions=('.pdf', '.tiff')):
 		A list of document paths
 	"""
 	documentsList = []                            
-	for fname in walkThroughFiles(directory, file_extensions):
+	for fname in walk_through_files(directory, file_extensions):
 		documentsList.append(fname)
 	return documentsList
 
-def cleanText(text, exportType):
+def clean_text(text, exportType):
 	"""
 	Basic string cleaning function, removes non printable charactes as well as tabs and newlines
 	Args:

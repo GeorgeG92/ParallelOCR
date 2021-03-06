@@ -1,12 +1,15 @@
 import sys
-from argParser import argParser
+from arg_parser import arg_parser
 from ocr import OCR
-#from poppler import load_from_file, PageRenderer
+import logging
+
 
 def main(args):
 	OCR(args)
 	return 0
 
 if __name__ == "__main__":
-	args = argParser(sys.argv)
+	args = arg_parser(sys.argv)
+	logging.basicConfig(level=getattr(logging, args.logging_level), 
+		format='%(asctime)s | %(levelname)s | %(filename)s:%(funcName)s | %(message)s')
 	main(args)

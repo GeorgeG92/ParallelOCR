@@ -3,7 +3,7 @@ import subprocess
 from shutil import copyfile, rmtree
 import multiprocessing as mp
 import pytesseract as ps
-from misc import walkThroughFiles, generateList, cleanText
+from misc import walk_through_files, generate_list, clean_text
 import pandas as pd
 try:
 	from PIL import Image
@@ -11,6 +11,10 @@ except ImportError:
 	import Image
 import PyPDF2
 import docx
+import logging
+
+logger = logging.getLogger(__file__)
+
 
 class OCR():
 	def __init__(self, args):
@@ -22,14 +26,14 @@ class OCR():
 		self.expType = args.expType
 		self.dpi = args.dpi
 
-		self.docList = generateList(self.docsPath)
+		self.docList = generate_list(self.docsPath)
 		if self.performance==2:
 			self.concurrent = min(len(self.docList),mp.cpu_count())
 		elif self.performance==1:
 			self.concurrent = min(len(self.docList),int(mp.cpu_count()/2))
 		else:
 			self.concurrent = min(len(self.docList), int(mp.cpu_count()/4))
-		self.runOCR()
+		self.run_OCR()
 
 
 	def ocr(self, imagePath): 
@@ -44,7 +48,7 @@ class OCR():
 		#text = text.translate(str.maketrans('', '', string.punctuation)).lower().rstrip()    
 		return text
 
-	def testPDFReadable(self, docPath):
+	def test_pdf_readable(self, docPath):
 		"""
 		Tests whether a pdf is readable using the pypdf library
 		Returns a boolean value
@@ -56,7 +60,7 @@ class OCR():
 		    pdftext += pagetext
 		return len(pdftext)>0, pdftext
 
-	def ocrPipeline(self, docPath):
+	def ocr_pipeline(self, docPath):
 		"""
 		OCR Pipeline that transforms a document to one image/page and then extracts the text from it
 			Runs in multiprocessing
@@ -64,9 +68,9 @@ class OCR():
 			docPath: the path to the input document
 		"""
 		# pdf to Images
-		print("\tProcessing document: "+str(docPath))
+		logger.info("\tProcessing document: {docPath}".format(docPath=docPath))
 		head, tail = os.path.split(docPath)                   # head='./../../', tail='bla.ext'
-		readable, finalText = self.testPDFReadable(docPath)
+		readable, finalText = self.test_pdf_readable(docPath)
 		if not readable:                                      # OCR
 			fileName, ext = os.path.splitext(tail)
 			imagePath = os.path.join(self.imagesPath, fileName)
@@ -78,23 +82,23 @@ class OCR():
 			else:
 				copyfile(docPath, os.path.join(imagePath, tail))
 			# Images to Text
-			imagesList =  generateList(imagePath, file_extensions=('.jpg', '.tiff'))
+			imagesList =  generate_list(imagePath, file_extensions=('.jpg', '.tiff'))
 			finalText = ' '.join([self.ocr(imagePath) for imagePath in imagesList])
 			if self.cleanup:
 				rmtree(imagePath)
-		finalText = cleanText(finalText, self.expType)
+		finalText = clean_text(finalText, self.expType)
 		returnTuple = (tail, docPath, finalText)
 		return returnTuple
 
 
-	def exportResults(self, textList):
+	def export_results(self, textList):
 		"""
 		Persists the extracted text to disk in .docx or .csv format
 		Args:
 			textList: A list of tuples containing document content and metadata
 		"""
 		if self.expType=='docx':
-			print("Exporting documents in .docx format "+str(self.outputPath))
+			logger.info("Exporting documents in .docx format: {outpath}".format(outpath=self.outputPath))
 			for docList in textList:
 				docPath = os.path.join(self.outputPath, ''.join(docList[0].split('.')[:-1])+'.docx')
 				docxDoc = docx.Document()
@@ -102,18 +106,18 @@ class OCR():
 					docxDoc.add_paragraph(paragraph)
 				docxDoc.save(docPath)
 		else:
-			print("Exporting documents in .docx format in "+str(self.outputPath))
+			logger.info("Exporting documents in .csv format: {outpath}".format(outpath=self.outputPath))
 			df = pd.DataFrame(textList, columns=['document', 'path', 'text'])
 			df.to_csv(os.path.join(self.outputPath, 'results.csv'), index=False)
-		print("Done!")
+			logger.info("Done")
 
-	def runOCR(self):
+	def run_OCR(self):
 		"""
 		Function that sets the OCR pipeline in motion
 		"""
-		print("Extracting text from "+str(len(self.docList))+" documents using "+str(self.concurrent)+" processes")
+		logger.info("Extracting text from {d} documents using {c} processes".format(d=len(self.docList), c=self.concurrent))
 		p=mp.Pool(processes = self.concurrent)  
-		textList = p.starmap(self.ocrPipeline, zip(self.docList))
+		textList = p.starmap(self.ocr_pipeline, zip(self.docList))
 		p.close()
 		p.join()
-		self.exportResults(textList)
+		self.export_results(textList)
