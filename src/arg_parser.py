@@ -30,7 +30,7 @@ def arg_parser(argv):
 						choices=['debug', 'info', 'warning', 'error', 'critical'],
 						default='info', help='set logging level')
 
-	parser.add_argument('--docspath', dest='docsPath',
+	parser.add_argument('--docspath', dest='docsPath', 
 					default=os.path.join('..', 'documents'),
 					help='Path to input documents')
 
@@ -39,18 +39,17 @@ def arg_parser(argv):
 						help='Path to image directory to be used for the pipelines')
 
 	parser.add_argument('--exptype', type=str.lower, dest='expType',
-						default='docx',
+						default='docx', choices=['docx', 'csv'],
 						help='Export in .csv or .docx format')
 
 	parser.add_argument('--performance', dest='performance', type=int,
-						default=2,
-						help='Performance profiles: 0: light, 1:medium, 2:high',
-						choices=[0, 1, 2])
+						default=2, choices=[0, 1, 2],
+						help='Performance profiles: 0: light, 1:medium, 2:high')
 
-	parser.add_argument('--cleanup', default=True, 
+	parser.add_argument('--cleanup', default=True, dest='cleanup',
 						help='Whether to clean up generated images after OCR')
 
-	parser.add_argument('--dpi', type=int, default=300,
+	parser.add_argument('--dpi', type=int, default=300, dest='dpi',
 						help='Resolution of pdf2Image',
 						choices=[150, 300, 600])
 
